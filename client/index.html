@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--<Link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">-->
-    <link rel="stylesheet" href="style.css">
+    <Link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+    <link rel="stylesheet" href="src/style.css">
     <title>Lobby System - A Learning Project</title>
 </head>
 
@@ -27,15 +27,9 @@
     <Button id="create">Create New Lobby</Button>
     <br>
     <Button id="join">Join Lobby</Button>
-
-    <script src="script.js"></script>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io("ws://192.168.1.224");
-    </script>
-
-
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script src="src/script.js"></script>
 </body>
 
 </html>

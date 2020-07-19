@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room, leave_room, send
 import ast
@@ -20,8 +20,13 @@ rooms = [Game_room("test")]
 @app.route("/")
 def index():
     """Here we want to show lobbies and stuff"""
-    return render_template("index.html")
+    return send_from_directory("../client/", "index.html")
 
+@app.route("/src/<filename>")
+def src_files(filename):
+    """Returns the source files for the website"""
+    return send_from_directory("../client/src", filename)
+    
 @app.route("/users")
 def get_users():
     info = { "users" : users}
