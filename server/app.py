@@ -22,11 +22,12 @@ def index():
     """Here we want to show lobbies and stuff"""
     return send_from_directory("../client/", "index.html")
 
-@app.route("/src/<filename>")
+@app.route("/src/<path:filename>")
 def src_files(filename):
     """Returns the source files for the website"""
-    return send_from_directory("../client/src", filename)
-    
+    path = filename.split("/")
+    return send_from_directory("../client/src/" + "/".join(path[:-1]), path[-1])
+
 @app.route("/users")
 def get_users():
     info = { "users" : users}
