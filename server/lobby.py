@@ -1,9 +1,9 @@
 from game.player import Player
-
 class Lobby():
     def __init__(self, lobby_id):
         self.lobby_id = lobby_id
         self.players = []
+
     
     def join(self, playerName):
         newPlayer = Player(playerName, len(self.players))
@@ -15,5 +15,8 @@ class Lobby():
 
     def __str__(self):
         return self.lobby_id
+        
+
+
 
 
