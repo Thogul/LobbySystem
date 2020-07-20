@@ -11,4 +11,3 @@ class Player():
         return self.name
 
 
-        
