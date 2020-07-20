@@ -8,6 +8,18 @@ from lobby import Lobby
 #for generating lobby keys
 from key_gen import Key_gen
 
+
+"""Rescources:
+flask-socketio doc
+https://flask-socketio.readthedocs.io/en/latest/
+
+python socketio doc
+https://python-socketio.readthedocs.io/en/latest/
+
+socketio generic doc(?)
+https://socket.io/docs/
+"""
+
 #Instansiating app server and adding socketIO finctionality
 app  = Flask(__name__)
 CORS(app)
@@ -68,9 +80,9 @@ def on_join(data):
 @socketio.on('leave')
 def on_leave(data):
     username = data['username']
-    room = data['room']
-    leave_room(room)
-    send(username + ' has left the room')
+    lobby = data['room']
+    leave_room(lobby)
+    send(username + ' has left the room', room=lobby)
 
 
 if __name__ == '__main__':
