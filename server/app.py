@@ -15,7 +15,7 @@ app.config["DEBUG"] = True
 
 users = ["thomas", "lars", "thogul", "larsaur"]
 
-rooms = [Game_room("test")]
+lobbies = [Game_room("test")]
 
 @app.route("/")
 def index():
@@ -69,7 +69,7 @@ def on_join(data):
     username = data['username']
     users.append(username)
     room = data['room']
-    if room in rooms:
+    if room in lobbies:
         join_room(room)
         send(username + ' Has enterd the room', room=room)
     else:
@@ -81,6 +81,7 @@ def on_leave(data):
     room = data['room']
     leave_room(room)
     send(username + ' has left the room')
+
 
 if __name__ == '__main__':
     #app.run(host='0.0.0.0', debug=True)
