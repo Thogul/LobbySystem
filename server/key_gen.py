@@ -9,7 +9,7 @@ class Key_gen():
         characters = "abcdefghijklmnopqrstuvwxyz1234567890"
         code = ""   
         for _ in range(self.max_len):
-            ch = randint(0, len(characters))
+            ch = randint(0, len(characters) - 1)
             code += characters[ch]
         
         self.count += 1

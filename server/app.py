@@ -23,7 +23,7 @@ https://socket.io/docs/
 #Instansiating app server and adding socketIO finctionality
 app  = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*") #TODO cors should change when flask serves the react app
 
 #app server Configs
 app.config["DEBUG"] = True
@@ -71,6 +71,7 @@ def on_join(data):
     username = data['username']
     users.append(username)
     lobby = data['room']
+    print(username + " has entered the room " + lobby)
     if lobby in lobbies:
         join_room(lobby)
         send(username + ' Has enterd the room', room=lobby)
