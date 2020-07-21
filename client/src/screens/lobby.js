@@ -43,9 +43,6 @@ export default class Lobby extends React.Component{
                 onClick={() => Network.join_lobby("test_name", "test_name2")}>
                     Join Lobby
             </Button>
-    
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
-            <script src="src/script.js"></script>
             </div>
         )
     }
