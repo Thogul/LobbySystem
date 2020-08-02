@@ -1,67 +1,75 @@
-import io from 'socket.io-client/dist/socket.io';
+import io from 'socket.io-client';
+import './appstate'
+import AppState from './appstate';
 
-export default class Network{
+export default class Network {
 
     static socket = undefined
-    static host_url = "http://localhost:5000"
-    static socket_url = "http://localhost:5000" // this may change to ws:// when not on localhost
+    static hostURL = "http://localhost:5000"
+    static socketURL = "http://localhost:5000" // this may change to ws:// when not on localhost
 
-    static connectSocketIO(username, room) {
+    static async createLobby(username) {
+        const code = await fetch(this.hostURL + "/create", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': "application/json",
+            },
+            body: JSON.stringify({ username: username })
+        })
+            .then(resp => {
+                if (resp.status !== 200) {
+                    return null
+                }
+                return resp.json()
+            })
+            .then(data => {
+                console.log("(1) Recieved new lobby code: " + data['lobby_code'])
+                return data['lobby_code']
+            })
+            .catch(error => {
+                console.error(error)
+                return null
+            })
+        return code
+    }
+
+    static connectSocketIO() {
         // Create the socket
-		this.socket = io(this.socket_url);
-        
-        this.socket.on('connect', () => { 
-            console.log("connect")
-            this.socket.emit("join", {username: username, room: room})
-		});
+        this.socket = io(this.socketURL, {
+            path: '/socket.io',
+            jsonp: false,
+            reconnection: true,
+            reconnectionDelay: 100,
+            reconnectionAttempts: 100000,
+            pingTimeout: 30000,
+            secure: true,
+        });
+
+        this.socket.on('connect', () => {
+            console.log("Socket connected")
+        });
+
+        this.socket.on('reconnect', () => {
+            console.log("reconnected")
+        })
+
+        // handle the event sent with socket.send()
+        this.socket.on('update lobby', data => {
+            AppState.lobbyMembers = data['users']
+            AppState.updateLobby()
+            console.log(data['users'])
+        })
+
+        this.socket.on('error', data => {
+            console.log(data)
+        })
     }
 
-    static join_lobby(username, lobby_code){
-
-        console.log("Joining lobby")
-
-        /*fetch(this.host_url + "/join", {
-            method: "POST",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': "application/json",
-            },
-            body: JSON.stringify({username: username, lobby_code: lobby_code})
-        })
-        .then(async response => {
-            if(response.status === 200){
-                console.log(await response.json())
-            }else{
-                console.error(response)
-            }
-        })
-        .catch(error => console.error(error))*/
-
-        this.connectSocketIO(username, lobby_code)
+    static async joinLobbyRoom(username, lobby_code) {
+        if (!this.socket) {
+            return
+        }
+        await this.socket.emit("join room", { username: username, lobby_code: lobby_code })
     }
-
-    static create_lobby(username){
-
-        console.log("Creating lobby")
-
-        fetch(this.host_url + "/create", {
-            method: "POST",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': "application/json",
-            },
-            body: JSON.stringify({username: username})
-        })
-        .then(async response => {
-            if(response.status === 200){
-                console.log(await response.json())
-            }else{
-                console.error(response)
-            }
-        })
-        .catch(error => console.error(error))
-    }
-
-    
-
 }

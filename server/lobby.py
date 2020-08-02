@@ -1,4 +1,5 @@
 from game.player import Player
+
 class Lobby():
     def __init__(self, lobby_id):
         self.lobby_id = lobby_id

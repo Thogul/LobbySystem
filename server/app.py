@@ -23,7 +23,7 @@ https://socket.io/docs/
 #Instansiating app server and adding socketIO finctionality
 app  = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*") #TODO cors should change when flask serves the react app
+socketio = SocketIO(app, cors_allowed_origins="*") #TODO cors should change when flask serves the react app in production
 
 #app server Configs
 app.config["DEBUG"] = True
@@ -32,7 +32,7 @@ app.config["DEBUG"] = True
 users = ["thomas", "lars", "thogul", "larsaur"]
 
 #list of lobbies that are live
-lobbies = [Lobby("test")]
+lobbies = {"test": Lobby("test")}
 
 lobby_key_gen = Key_gen() #for making lobby IDs
 
@@ -51,8 +51,8 @@ def src_files(filename):
 def create_lobby():
     ##data = request.json
     lobbyID = lobby_key_gen.new_key()
-    lobbies.append(Lobby(lobbyID))
-    return jsonify({'lobbyID' : lobbyID, 'success' : True})
+    lobbies[lobbyID] = Lobby(lobbyID)
+    return jsonify({'lobby_code' : lobbyID, 'success' : True})
     
 @socketio.on('message')
 def handle_message(message):
@@ -63,27 +63,28 @@ def handle_message(message):
 def handle_connect():
     """If we want to do something when a device connects to the lobbies"""
     print("device connected")
-    emit('my response', {'data' : 'Connected!'})
+    #emit('my response', {'data' : 'Connected!'})
 
 #testing room stuff...
-@socketio.on('join')
+@socketio.on('join room')
 def on_join(data):
     username = data['username']
     users.append(username)
-    lobby = data['room']
-    print(username + " has entered the room " + lobby)
-    if lobby in lobbies:
-        join_room(lobby)
-        send(username + ' Has enterd the room', room=lobby)
+    lobby_code = data['lobby_code']
+    if lobby_code in lobbies.keys():
+        lobbies[lobby_code].join(username)
+        join_room(lobby_code)
+        emit('update lobby', {'users' : [player.name for player in lobbies[lobby_code].players]}, room=lobby_code)
     else:
-        emit('my response', {'data' : 'Room does not exist'})
+        print(f"room: {lobby_code} not found")
+        emit('error', {'data' : f'Room: {lobby_code} does not exist'})
 
 @socketio.on('leave')
 def on_leave(data):
     username = data['username']
-    lobby = data['room']
-    leave_room(lobby)
-    send(username + ' has left the room', room=lobby)
+    lobby_code = data['lobby_code']
+    leave_room(lobby_code)
+    send(username + ' has left the room', room=lobby_code)
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ class Key_gen():
         self.count = 0
 
     def new_key(self) -> str:
-        characters = "abcdefghijklmnopqrstuvwxyz1234567890"
+        characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
         code = ""   
         for _ in range(self.max_len):
             ch = randint(0, len(characters) - 1)

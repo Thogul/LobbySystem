@@ -1,104 +1,170 @@
 import React from "react"
 
 import Network from '../network'
-import './styles/lobby.css'
+import AppState from '../appstate'
+import '../styles/lobby.css'
 
-export default class Lobby extends React.Component{
+export default class Lobby extends React.Component {
 
-    constructor(props){
-        super(props)
+    constructor(props) {
+        super(props);
 
         this.state = {
             name: '',
-            lobby_code: '',
-        }
+            lobbyCode: '',
 
-        this.handleChange = this.handleChange.bind(this)
-        this.handleSubmit = this.handleSubmit.bind(this)
+            displayValidationError: false,
+            validationError: '',
+
+            inLobby: false
+        };
+
+        this.handleChange = this.handleChange.bind(this);
+        this.onSubmitCreateLobby = this.onSubmitCreateLobby.bind(this);
+        this.onSubmitJoinLobby = this.onSubmitJoinLobby.bind(this);
+        this.forceUpdateHandler = this.forceUpdateHandler.bind(this);
+    }
+
+    componentDidMount() {
+        AppState.forceUpdateLobby = this.forceUpdateHandler;
+    }
+
+    componentWillUnmount() {
+        AppState.forceUpdateLobby = null;
+    }
+
+    forceUpdateHandler() {
+        this.forceUpdate();
     }
 
     // Handles change event in the form, it is only made to handle type=text
-    handleChange(event){
-        const target = event.target
-        const name = target.name
-        const value = target.value
-        
-        this.setState({[name]: value})
+    handleChange(event) {
+        const target = event.target;
+        const name = target.name;
+        const value = target.value;
+        this.setState({ [name]: value.toUpperCase() });
     }
 
-    // Handles what happens when form is submited
-    handleSubmit(event){
-        const target = event.target
-        const name = target.name
-
-        if(name === "create_new_lobby"){
-            if(this.validate_name()){
-                Network.create_lobby(this.state.name)
-                console.log(this.state.name)
-            }
+    validateName() {
+        if (this.state.name === "") {
+            this.setState({ displayValidationError: true, validationError: 'Name cannot be empty' });
+            return false;
         }
-        else if (name === "join_lobby"){
-            if(this.validate_name() && this.validate_lobby_code()){
-                Network.join_lobby(this.state.name, this.state.lobby_code)
-                console.log(this.state.name)
-            }
+
+        return true;
+    }
+
+    validateLobbyCode() {
+        if (this.state.lobbyCode.length !== 5 || !/^[a-z0-9]+$/i.test(this.state.lobbyCode)) {
+            this.setState({ displayValidationError: true, validationError: 'The lobby code must be 5 letters/numbers' });
+            return false;
         }
-        // Stops form from beeing submitted as default
-        event.preventDefault()
+
+        return true;
     }
 
-    validate_name(){
-        return true
+    async onSubmitJoinLobby() {
+        if (this.validateName() && this.validateLobbyCode()) {
+            await Network.joinLobbyRoom(this.state.name, this.state.lobbyCode);
+
+            this.setState({ displayValidationError: false });
+            AppState.username = this.state.name;
+            AppState.lobbyCode = this.state.lobbyCode;
+
+            this.setState({ inLobby: true });
+        }
     }
 
-    validate_lobby_code(){
-        return true
+    async onSubmitCreateLobby() {
+        if (this.validateName()) {
+            let lobbyCode = await Network.createLobby(this.state.name);
+            if (!lobbyCode) {
+                this.setState({ displayValidationError: true, validationError: 'unable to create a lobby code' });
+                return;
+            }
+
+            await Network.joinLobbyRoom(this.state.name, lobbyCode);
+
+            AppState.lobbyCode = lobbyCode;
+            AppState.username = this.state.name;
+
+            this.setState({ inLobby: true, displayValidationError: false });
+        }
     }
 
-    render(){
-        return(
-            <div className="login-form">
-                <form onSubmit={this.handleSubmit}>
-                    <label> <b>Name:</b>
-                        <input 
-                            type="text" 
-                            name="name" 
-                            value={this.state.name} 
-                            onChange={this.handleChange} 
-                            placeholder="TumbleweedMaster..." 
-                            autoFocus
-                        />
-                    </label>
-                    <br/>
-                    <label> <b>Lobby Code:</b>
-                        <input 
-                            type="text" 
-                            name="lobby_code" 
-                            value={this.state.lobby_code} 
-                            onChange={this.handleChange} 
-                            maxLength="5" 
-                            placeholder="DJLQP"
-                        />
-                    </label>
+    render() {
+        if (!this.state.inLobby) {
+            return this.renderForm()
+        }
+        return this.renderLobby()
+    }
 
-                    <input type="submit" name="create_new_lobby" value="Create New Lobby"/>
-                    <input type="submit" name="join_lobby" value="Join Lobby"/>
-                </form>
+    renderLobby() {
 
-            <br/>
-            {/*<Button 
-                variant="contained"
-                color="primary" 
-                onClick={() => Network.create_lobby("test_name")}>
-                    Create New Lobby
-            </Button>
-            <Button 
-                variant="contained" 
-                color="primary" 
-                onClick={() => Network.join_lobby("test_name", "test_name2")}>
-                    Join Lobby
-            </Button>*/}
+        const names = AppState.lobbyMembers.map((name) => {
+            return <li key={name}>{name}</li>
+        })
+
+        return (
+            <div className="container">
+                <b> Your lobby code: {AppState.lobbyCode}</b>
+                <br/>
+                <b> Your name: {AppState.username}</b>
+                <br/>                
+                <br/>                
+                <br/>                
+                <br/>                
+                <b>All lobby members</b>
+                <ul>
+                    {names}
+                </ul>
             </div>
         )
+    }
+
+    renderForm() {
+        return (
+            <div className="container">
+                <div className="login-form">
+                    <form>
+                        <label> <b>Name:</b>
+                            <input
+                                type="text"
+                                name="name"
+                                value={this.state.name}
+                                onChange={this.handleChange}
+                                placeholder=""
+                                autoFocus
+                                required
+                            />
+                        </label>
+                        <br />
+                        <label> <b>Lobby Code:</b>
+                            <input
+                                type="text"
+                                name="lobbyCode"
+                                value={this.state.lobbyCode}
+                                onChange={this.handleChange}
+                                maxLength="5"
+                                placeholder="ex: DJL5P"
+                            />
+                        </label>
+                        {this.renderValidationError()}
+                        <input type="button" name="create lobby" onClick={this.onSubmitCreateLobby} value="Create New Lobby" />
+                        <input type="button" name="join lobby" onClick={this.onSubmitJoinLobby} value="Join Lobby" />
+                    </form>
+                </div>
+            </div>
+        )
+    }
+
+    renderValidationError() {
+        if (this.state.displayValidationError) {
+            return (
+                <div className="error-message">
+                    {this.state.validationError}
+                </div>
+            )
+        }
     }
 }

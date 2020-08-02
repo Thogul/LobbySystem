@@ -1,13 +1,19 @@
 import React from 'react';
-import './App.css';
-import Lobby from "./screens/lobby.js"
+import Lobby from "./screens/lobby"
+import Network from './network'
 
-function App() {
-  return (
-    <div>
-      <Lobby/>
-    </div>
-  );
+export default class App extends React.Component {
+
+	constructor() {
+        super()
+		Network.connectSocketIO()
+	}
+
+	render() {
+		return (
+			<div>
+				<Lobby />
+			</div>
+		)
+	}
 }
-
-export default App;
