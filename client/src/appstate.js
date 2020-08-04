@@ -2,19 +2,28 @@ export default class AppState {
 
     static gamestate = {}
 
-    static lobbyCode = undefined
-    
+    static lobbyId = undefined
     static username = undefined
-    static lobbyMembers = []
+    static userId = undefined
+
+    static lobbyData = {}
 
     static forceUpdateLobby = null
 
     static clearAppstate() {
         this.gamestate = {}
 
-        this.lobbyCode = undefined
+        // Data for the current user
+        this.lobbyId = undefined
         this.username = undefined
-        this.lobbyMembers = []
+        this.userId = undefined
+
+        // Data for all lobby members
+        this.lobbyData = {}
+    }
+
+    static isAdmin(){
+        return this.lobbyData['adminId'] !== undefined && this.userId === this.lobbyData['adminId']
     }
 
     static updateLobby(){

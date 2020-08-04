@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from flask_cors import CORS #Cross site rescource sharing stuff idk, it works
 from flask_socketio import SocketIO, emit, join_room, leave_room, send
+import time
 
 #local imports:
 # Should change to lobby class later
@@ -28,11 +29,8 @@ socketio = SocketIO(app, cors_allowed_origins="*") #TODO cors should change when
 #app server Configs
 app.config["DEBUG"] = True
 
-#Temp for testing
-users = ["thomas", "lars", "thogul", "larsaur"]
-
-#list of lobbies that are live
-lobbies = {"test": Lobby("test")}
+#dictionary of lobbies that are live key is lobbyId
+lobbies = {}
 
 lobby_key_gen = Key_gen() #for making lobby IDs
 
@@ -49,42 +47,71 @@ def src_files(filename):
 
 @app.route("/create", methods = ['POST'])
 def create_lobby():
-    ##data = request.json
-    lobbyID = lobby_key_gen.new_key()
-    lobbies[lobbyID] = Lobby(lobbyID)
-    return jsonify({'lobby_code' : lobbyID, 'success' : True})
+    lobbyId = lobby_key_gen.new_key()
+    lobbies[lobbyId] = Lobby(lobbyId)
+    return jsonify({'lobbyId' : lobbyId})
     
 @socketio.on('message')
 def handle_message(message):
     """Idk what we are using this for right now, maybe for later"""
-    print('recieved message: ' + message)
+    pass
 
 @socketio.on('connect')
 def handle_connect():
     """If we want to do something when a device connects to the lobbies"""
-    print("device connected")
-    #emit('my response', {'data' : 'Connected!'})
+    pass
 
 #testing room stuff...
 @socketio.on('join room')
 def on_join(data):
+    # Get user data on joining room
     username = data['username']
-    users.append(username)
-    lobby_code = data['lobby_code']
-    if lobby_code in lobbies.keys():
-        lobbies[lobby_code].join(username)
-        join_room(lobby_code)
-        emit('update lobby', {'users' : [player.name for player in lobbies[lobby_code].players]}, room=lobby_code)
+    lobbyId = data['lobbyId']
+    
+    # Check if the lobby exists
+    if lobbyId in lobbies.keys():
+        lobby = lobbies[lobbyId]
+        # Adding the user to the lobby with username and the spesific socketId and getting the userId
+        user_id = lobby.join(username, request.sid)
+        user_data = {
+            "userId": user_id,
+        }
+        emit('update user', user_data)
+        # Joining user in the socketIO room
+        join_room(lobbyId)
+        # Sending the updated lobbyData to the coresponding room
+        lobby_data = {
+            'users': [player.to_dict() for player in lobby.players],
+            'adminId': min([player.id for player in lobby.players]),
+        }
+        
+        emit('update lobby', lobby_data, room=lobbyId)
     else:
-        print(f"room: {lobby_code} not found")
-        emit('error', {'data' : f'Room: {lobby_code} does not exist'})
+        print(f"room: {lobbyId} not found")
+        emit('error', {'data' : f'Room: {lobbyId} does not exist'})
+        
+@socketio.on('start game')
+def on_game_start(data):
+    lobbyId = data['lobbyId']
+    userId = data['userId']
+    
+    if lobbyId in lobbies.keys():
+        lobby = lobbies[lobbyId]
+        if lobby.get_admin().id == userId:
+            emit('start game', room=lobbyId)
+            print(f"starting game {lobbyId}")
+        else:
+            emit('error', {'data': f"The user {userId} is not admin of {lobbyId}"})
+    else:
+            emit('error', {'data': f"{lobbyId} does not exist"})
+        
 
 @socketio.on('leave')
 def on_leave(data):
     username = data['username']
-    lobby_code = data['lobby_code']
-    leave_room(lobby_code)
-    send(username + ' has left the room', room=lobby_code)
+    lobbyId = data['lobbyId']
+    leave_room(lobbyId)
+    send(username + ' has left the room', room=lobbyId)
 
 
 if __name__ == '__main__':

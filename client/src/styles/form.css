@@ -1,0 +1,42 @@
+:root{
+    --form-width: 350px
+}
+
+.container {
+    font-size: medium;
+}
+
+.form-button-container{
+    display: flex;
+    justify-content: space-around;
+}
+
+.login-form {
+    width: var(--form-width);
+    padding: 75px 60px 140px 60px;
+    position: absolute;
+    left: 50%;
+    right: 50%;
+    transform: translate(-50%, 20vh);
+    border-width: 3px;
+    border-color: rgba(204, 204, 204, 0.466);
+    border-style: dashed;
+    border-radius: 5px;
+}
+
+input[type=text] {
+    width: calc(var(--form-width) - 32px); /* Dont know why this have to be 32px smaller butt it works (._.) */
+    margin-bottom: 10px;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border-color: rgba(204, 204, 204, 0.349);
+    border-width: 1px;
+    border-radius: 5px;
+    font-size: medium;
+    text-transform: uppercase;
+    outline: 0
+}
+
+.error-message{
+    color: rgb(236, 75, 75)
+}

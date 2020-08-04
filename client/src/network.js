@@ -8,6 +8,18 @@ export default class Network {
     static hostURL = "http://localhost:5000"
     static socketURL = "http://localhost:5000" // this may change to ws:// when not on localhost
 
+    /**
+     * Events:
+     * 'connect'
+     * 'reconnect'
+     * 
+     * Custom events:
+     * 'error'
+     * 'update lobby'
+     * 'update user'
+     * 'start game'
+     */
+
     static async createLobby(username) {
         const code = await fetch(this.hostURL + "/create", {
             method: "POST",
@@ -24,8 +36,8 @@ export default class Network {
                 return resp.json()
             })
             .then(data => {
-                console.log("(1) Recieved new lobby code: " + data['lobby_code'])
-                return data['lobby_code']
+                console.log("(1) Recieved new lobby code: " + data['lobbyId'])
+                return data['lobbyId']
             })
             .catch(error => {
                 console.error(error)
@@ -56,9 +68,12 @@ export default class Network {
 
         // handle the event sent with socket.send()
         this.socket.on('update lobby', data => {
-            AppState.lobbyMembers = data['users']
+            AppState.lobbyData = { users: data['users'], adminId: data['adminId']}
             AppState.updateLobby()
-            console.log(data['users'])
+        })
+
+        this.socket.on('update user', data => {
+            AppState.userId = data['userId']
         })
 
         this.socket.on('error', data => {
@@ -66,10 +81,10 @@ export default class Network {
         })
     }
 
-    static async joinLobbyRoom(username, lobby_code) {
+    static async joinLobbyRoom(username, lobbyId) {
         if (!this.socket) {
             return
         }
-        await this.socket.emit("join room", { username: username, lobby_code: lobby_code })
+        await this.socket.emit("join room", { username: username, lobbyId: lobbyId })
     }
 }
