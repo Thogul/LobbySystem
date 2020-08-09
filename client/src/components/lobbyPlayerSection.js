@@ -1,7 +1,7 @@
 import React from 'react'
 
 import '../styles/lobby.css'
-import AppState from '../appstate';
+import AppState from '../utils/appstate';
 
 export default class LobbyPlayerSection extends React.Component {
 

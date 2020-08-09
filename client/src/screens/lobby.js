@@ -1,10 +1,10 @@
 import React from "react"
 
-import AppState from '../appstate'
+import AppState from '../utils/appstate'
+import Network from "../utils/network";
 import LobbyPlayerSection from '../components/lobbyPlayerSection'
 import Button from "../components/button";
 import '../styles/lobby.css'
-import Network from "../network";
 
 export default class Lobby extends React.Component {
 

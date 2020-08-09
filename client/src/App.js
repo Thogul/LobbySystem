@@ -1,7 +1,8 @@
 import React from 'react';
 import Lobby from "./screens/lobby"
 import Form from "./screens/form"
-import Network from './network'
+import GameScreen from './screens/gamescreen'
+import Network from './utils/network'
 
 export default class App extends React.Component {
 
@@ -20,6 +21,9 @@ export default class App extends React.Component {
 		// Connects to SocketIO when App mounts to avoid double 
 		// constructer call in App due to artifact of React.strictMode in index.js
 		Network.connectSocketIO();
+
+		// This creates a lobby and enters the gamestate 
+		//this.debugStartup();
 	}
 
 	render() {
@@ -29,7 +33,7 @@ export default class App extends React.Component {
 			case 'lobby':
 				return <Lobby changeNavigationState={this.changeNavigationState}/>
 			case 'ingame':
-				return (<div> Sorry, the ingame state is not made :( </div>)
+				return <GameScreen changeNavigationState={this.changeNavigationState}/>
 			default:
 				return (<div> Sorry, this is an illegal state {this.state.navigationState} </div>)
 		}
@@ -38,5 +42,13 @@ export default class App extends React.Component {
 	changeNavigationState(state){
 		console.log("Change state to: " + state)
 		this.setState({navigationState: state});
+	}
+
+	async debugStartup(){
+		// For debug:
+		const code = await Network.createLobby();
+		await Network.joinLobbyRoom("debugger", code);
+		Network.socket.emit('start game', {lobbyId : code, userId : 0})
+		this.changeNavigationState('ingame')
 	}
 }

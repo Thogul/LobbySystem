@@ -20,14 +20,14 @@ export default class Network {
      * 'start game'
      */
 
-    static async createLobby(username) {
+    static async createLobby() {
         const code = await fetch(this.hostURL + "/create", {
             method: "POST",
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': "application/json",
             },
-            body: JSON.stringify({ username: username })
+            body: JSON.stringify({})
         })
             .then(resp => {
                 if (resp.status !== 200) {

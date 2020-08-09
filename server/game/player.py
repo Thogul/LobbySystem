@@ -1,5 +1,5 @@
 class Player():
-    def __init__(self, name, id, socket_id ):
+    def __init__(self, name, id, socket_id):
         self.name = name
         self.id = id
         self.socket_id = socket_id

@@ -1,0 +1,50 @@
+.game-screen-container{
+    display: grid;
+    grid-template-columns: 300px 120vh auto;
+    grid-template-rows: auto 45vh 45vh auto;
+    height: 100vh;
+    width: 100vw;
+
+    background-color: aquamarine;
+}
+
+canvas{
+    grid-column-start: 2;
+    grid-column-end: 2;
+    grid-row-start: 2;
+    grid-row-end: 4;
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    height: 100%;
+    width: 100%;
+}
+
+.upper-right-menu{
+    grid-column-start: 3;
+    grid-column-end: 3;
+    grid-row-start: 1;
+    grid-row-end: 3;
+
+    background-color: red;
+}
+
+.lower-right-menu{
+    grid-column-start: 3;
+    grid-column-end: 3;
+    grid-row-start: 3;
+    grid-row-end: 5;
+
+    background-color: green;
+}
+
+.left-menu{
+    grid-column-start: 1;
+    grid-column-end: 1;
+    grid-row-start: 1;
+    grid-row-end: 5;
+
+    background-color: brown;
+}
+

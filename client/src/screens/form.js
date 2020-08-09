@@ -1,6 +1,6 @@
 import React from 'react'
-import AppState from '../appstate'
-import Network from '../network'
+import AppState from '../utils/appstate'
+import Network from '../utils/network'
 import '../styles/form.css'
 
 export default class Form extends React.Component {

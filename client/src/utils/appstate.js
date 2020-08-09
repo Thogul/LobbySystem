@@ -22,10 +22,12 @@ export default class AppState {
         this.lobbyData = {}
     }
 
+    // Checks if current user is admin
     static isAdmin(){
         return this.lobbyData['adminId'] !== undefined && this.userId === this.lobbyData['adminId']
     }
 
+    // Force updates lobby if the lobby component is mounted
     static updateLobby(){
         if(this.forceUpdateLobby !== null){
             this.forceUpdateLobby()
