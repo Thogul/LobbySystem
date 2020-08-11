@@ -8,8 +8,6 @@ export default class AppState {
 
     static lobbyData = {}
 
-    static forceUpdateLobby = null
-
     static clearAppstate() {
         this.gamestate = {}
 
@@ -25,12 +23,5 @@ export default class AppState {
     // Checks if current user is admin
     static isAdmin(){
         return this.lobbyData['adminId'] !== undefined && this.userId === this.lobbyData['adminId']
-    }
-
-    // Force updates lobby if the lobby component is mounted
-    static updateLobby(){
-        if(this.forceUpdateLobby !== null){
-            this.forceUpdateLobby()
-        }
     }
 }

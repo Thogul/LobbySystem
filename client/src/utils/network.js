@@ -15,8 +15,8 @@ export default class Network {
      * 
      * Custom events:
      * 'error'
+     * 'form response'
      * 'update lobby'
-     * 'update user'
      * 'start game'
      */
 
@@ -59,32 +59,90 @@ export default class Network {
         });
 
         this.socket.on('connect', () => {
-            console.log("Socket connected")
+            console.log("Socket connected");
         });
 
         this.socket.on('reconnect', () => {
-            console.log("reconnected")
-        })
-
-        // handle the event sent with socket.send()
-        this.socket.on('update lobby', data => {
-            AppState.lobbyData = { users: data['users'], adminId: data['adminId']}
-            AppState.updateLobby()
-        })
-
-        this.socket.on('update user', data => {
-            AppState.userId = data['userId']
-        })
+            console.log("reconnected");
+        });
 
         this.socket.on('error', data => {
-            console.log(data)
-        })
+            console.log(data);
+        });
     }
 
-    static async joinLobbyRoom(username, lobbyId) {
-        if (!this.socket) {
-            return
+
+    static startGame() {
+        // Checks if the current user is admin if the required values exits.
+        // Then asks the server to start the game
+        if(!AppState.isAdmin()) return;
+        if(AppState.lobbyId === undefined || AppState.userId === undefined) return;
+        Network.socket.emit('start game', {lobbyId: AppState.lobbyId, userId: AppState.userId});
+    }
+
+
+    static joinLobbyRoom(username, lobbyId) {
+        if (!this.socket) return;
+        this.socket.emit("join room", { username: username, lobbyId: lobbyId });
+    }
+
+
+    static subscribeToFormResponse(callback){
+        if(!this.socket){
+            console.error("Unable to subscribe to event 'form response' with: " + callback);
+            return false;
         }
-        await this.socket.emit("join room", { username: username, lobbyId: lobbyId })
+        this.socket.on('form response', callback);
+        return true;
+    }
+
+
+    static unsubscribeFromFormResponse(callback){
+        if(!this.socket){
+            console.error("Unable to unsubscribe from event 'form response' with: " + callback);
+            return false;
+        }
+        this.socket.removeListener('form response', callback);
+        return true;
+    }
+
+
+    static subscribeToLobbyUpdate(callback){
+        if(!this.socket){
+            console.error("Unable to subscribe to event 'update lobby' with: " + callback);
+            return false;
+        }
+        this.socket.on('update lobby', callback);
+        return true;
+    }
+
+
+    static unsubscribeFromLobbyUpdate(callback){
+        if(!this.socket){
+            console.error("Unable to unsubscribe from event 'update lobby' with: " + callback);
+            return false;
+        }
+        this.socket.removeListener('update lobby', callback);
+        return true;
+    }
+
+
+    static subscribeToGameStart(callback){
+        if(!this.socket){
+            console.error("Unable to subscribe to event 'start game' with: " + callback);
+            return false;
+        }
+        this.socket.on('start game', callback);
+        return true;
+    }
+
+
+    static unsubscribeFromGameStart(callback){
+        if(!this.socket){
+            console.error("Unable to unsubscribe from event 'start game' with: " + callback);
+            return false;
+        }
+        this.socket.removeListener('start game', callback);
+        return true;
     }
 }

@@ -18,6 +18,7 @@ export default class Form extends React.Component {
         }
 
         this.handleChange = this.handleChange.bind(this);
+        this.onFormResponse = this.onFormResponse.bind(this);
         this.onSubmitCreateLobby = this.onSubmitCreateLobby.bind(this);
         this.onSubmitJoinLobby = this.onSubmitJoinLobby.bind(this);
     }
@@ -27,6 +28,7 @@ export default class Form extends React.Component {
         const target = event.target;
         const name = target.name;
         const value = target.value;
+        // Uses the name of the input field as the state key
         this.setState({ [name]: value.toUpperCase() });
     }
 
@@ -35,7 +37,6 @@ export default class Form extends React.Component {
             this.setState({ displayValidationError: true, validationError: 'Name cannot be empty' });
             return false;
         }
-
         return true;
     }
 
@@ -44,19 +45,14 @@ export default class Form extends React.Component {
             this.setState({ displayValidationError: true, validationError: 'The lobby code must be 5 letters/numbers' });
             return false;
         }
-
         return true;
     }
 
     async onSubmitJoinLobby() {
         if (this.validateName() && this.validatelobbyId()) {
-            await Network.joinLobbyRoom(this.state.name, this.state.lobbyId);
-
+            Network.subscribeToFormResponse(this.onFormResponse);
+            Network.joinLobbyRoom(this.state.name, this.state.lobbyId);
             this.setState({ displayValidationError: false });
-            AppState.username = this.state.name;
-            AppState.lobbyId = this.state.lobbyId;
-
-            this.props.changeNavigationState('lobby');
         }
     }
 
@@ -64,18 +60,33 @@ export default class Form extends React.Component {
         if (this.validateName()) {
             let lobbyId = await Network.createLobby(this.state.name);
             if (!lobbyId) {
-                this.setState({ displayValidationError: true, validationError: 'unable to create a lobby code' });
+                this.setState({ displayValidationError: true, validationError: 'Unable to create a lobby code' });
                 return;
             }
-
-            await Network.joinLobbyRoom(this.state.name, lobbyId);
-
-            AppState.lobbyId = lobbyId;
-            AppState.username = this.state.name;
-
+            Network.joinLobbyRoom(this.state.name, lobbyId);
+            Network.subscribeToFormResponse(this.onFormResponse);
             this.setState({ displayValidationError: false });
-            this.props.changeNavigationState('lobby');
         }
+    }
+
+    onFormResponse(data){
+        const ack = data['ack'];
+        const msg = data['msg'];
+        const lobbyId = data['lobbyId'];
+        const username = data['username'];
+        const userId = data['userId'];
+        const adminToken = null; // TODO: Implement AdminToken
+
+        if(ack){
+            AppState.lobbyId = lobbyId;
+            AppState.username = username;
+            AppState.userId = userId;
+            this.props.changeNavigationState('lobby');
+        }else{
+            this.setState({displayValidationError: true, validationError: msg});
+        }
+
+        Network.unsubscribeFromFormResponse(this.onFormResponse);
     }
 
     render() {

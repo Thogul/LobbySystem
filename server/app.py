@@ -72,13 +72,10 @@ def on_join(data):
     if lobbyId in lobbies.keys():
         lobby = lobbies[lobbyId]
         # Adding the user to the lobby with username and the spesific socketId and getting the userId
-        user_id = lobby.join(username, request.sid)
-        user_data = {
-            "userId": user_id,
-        }
-        emit('update user', user_data)
+        userId = lobby.join(username, request.sid)
         # Joining user in the socketIO room
         join_room(lobbyId)
+        emit('form response', {'ack': True, 'msg': "", 'username': username, 'lobbyId': lobbyId, 'userId': userId})
         # Sending the updated lobbyData to the coresponding room
         lobby_data = {
             'users': [player.to_dict() for player in lobby.players],
@@ -88,6 +85,7 @@ def on_join(data):
         emit('update lobby', lobby_data, room=lobbyId)
     else:
         print(f"room: {lobbyId} not found")
+        emit('form response', {'ack': False, 'msg': "The lobby does not exist", 'username': None, 'lobbyId': None})
         emit('error', {'data' : f'Room: {lobbyId} does not exist'})
         
 @socketio.on('start game')
