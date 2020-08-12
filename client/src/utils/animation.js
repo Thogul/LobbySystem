@@ -1,6 +1,5 @@
 export default class Animation {
 
-
     /**
      * @param {Image} spriteSheet Image containing all the frames ordered horizontaly
      * @param {Number} frameWidth Width for each frame

@@ -4,7 +4,10 @@ export default class renderer{
         this.ctx = ctx;
         this.width = width;
         this.height = height;
-    }
+
+        // Disables image smoothing to scale images with nearest neighbour
+        this.ctx.imageSmoothingEnabled = false;
+    }   
 
     fillRect(x, y, w, h, color){
         this.ctx.fillStyle = color;
@@ -13,6 +16,11 @@ export default class renderer{
 
     drawImage(img, x, y){
         this.ctx.drawImage(img, x, y);
+    }
+
+    // Draws the images at (x, y) at the given width and height
+    drawStretchedImage(img, x, y, width, height){
+        this.ctx.drawImage(img, 0, 0, img.width, img.height, x, y, width, height);
     }
 
     // Draws a sub image at (x, y) clipping from (clipx, clipy) with dimentions (clipw, cliph). The image is not scaled or stretched

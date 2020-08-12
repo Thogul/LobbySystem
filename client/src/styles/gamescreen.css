@@ -1,11 +1,16 @@
+:root{
+    --canvas-width: 1280px;
+    --canvas-height: 720px;
+}
+
 .game-screen-container{
     display: grid;
-    grid-template-columns: 300px 120vh auto;
-    grid-template-rows: auto 45vh 45vh auto;
+    grid-template-columns: auto var(--canvas-width) auto;
+    grid-template-rows: auto calc(var(--canvas-height) / 2) calc(var(--canvas-height) / 2) auto;
     height: 100vh;
     width: 100vw;
 
-    background-color: aquamarine;
+    background-color: #344955;
 }
 
 canvas{
@@ -14,11 +19,24 @@ canvas{
     grid-row-start: 2;
     grid-row-end: 4;
 
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
+    image-rendering: optimizeSpeed;             /* Older versions of FF          */
+    image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
+    image-rendering: -webkit-optimize-contrast; /* Safari                        */
+    image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
+    image-rendering: pixelated;                 /* Awesome future-browsers       */
+    -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
 
     height: 100%;
     width: 100%;
+}
+
+.upper-right-menu, .lower-right-menu, .left-menu, .bottom-menu, .top-menu{
+    background-color: #344955;
+    color: #eeeeee;
+
+    border-width: 7px;
+    border-color: #243945;
+    border-style: solid;
 }
 
 .upper-right-menu{
@@ -27,7 +45,7 @@ canvas{
     grid-row-start: 1;
     grid-row-end: 3;
 
-    background-color: red;
+    border-bottom: 0;
 }
 
 .lower-right-menu{
@@ -35,8 +53,6 @@ canvas{
     grid-column-end: 3;
     grid-row-start: 3;
     grid-row-end: 5;
-
-    background-color: green;
 }
 
 .left-menu{
@@ -44,7 +60,30 @@ canvas{
     grid-column-end: 1;
     grid-row-start: 1;
     grid-row-end: 5;
-
-    background-color: brown;
 }
+
+.top-menu{
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 1;
+    grid-row-end: 2;
+
+    border-left: 0;
+    border-right: 0;
+    padding-left: 7px;
+    padding-right: 7px;
+}
+
+.bottom-menu{
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 4;
+    grid-row-end: 5;
+
+    border-left: 0;
+    border-right: 0;
+    padding-left: 7px;
+    padding-right: 7px;
+}
+
 

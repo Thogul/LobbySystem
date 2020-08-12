@@ -8,14 +8,14 @@ export default class Loader {
 
     // A url to fetch the image, and a key to get the image once loaded
     static imageURLs = [
-        ["testImage", "/src/assets/img/test.png"],
+        ["roomLayout", "/src/assets/img/Room_Layout_1.png"]
     ];
     // Map to Image objects from the keys in the imageURLs list
     static images = new Map();
 
     // Maps an animation key to an animation template (imageKey, frameWidth, frameHeight, msPerStep, onFinish=undefined, loop=true)
     static animationTemplates = new Map([
-        ['testAnimation', {imageKey: 'testImage', frameWidth: 25, frameHeight: 25, msPerStep: 60, onFinish: undefined, loop: true}]
+        ['testAnimation', {imageKey: 'roomLayout', frameWidth: 25, frameHeight: 25, msPerStep: 60, onFinish: undefined, loop: true}]
     ]);
 
     /**
@@ -71,6 +71,7 @@ export default class Loader {
     }
 
     /**
+     * gets new animations from premade templates
      * @param {String} key 
      */
     static getAnimationObject(key){
