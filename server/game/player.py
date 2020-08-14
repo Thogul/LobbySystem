@@ -1,17 +1,18 @@
 class Player():
-    def __init__(self, name, id, socket_id):
+    def __init__(self, name, userId, socketId, lobby):
         self.name = name
-        self.id = id
-        self.socket_id = socket_id
+        self.userId = userId
+        self.socket_id = socketId
         self.hitPoints = 100
         self.defence = 22
         self.attackDamage = 10
         self.threatLevel = 0
+        self.lobby = lobby
     
     def to_dict(self):
         return {
             'name': self.name,
-            'userId': self.id,
+            'userId': self.userId,
         }
     
     def __str__(self):

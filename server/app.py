@@ -29,8 +29,10 @@ socketio = SocketIO(app, cors_allowed_origins="*") #TODO cors should change when
 #app server Configs
 app.config["DEBUG"] = True
 
-#dictionary of lobbies that are live key is lobbyId
+# Dictionary of lobbies that are live key is lobbyId
 lobbies = {}
+# Dictionary of active players, the key is the socketid
+players = {}
 
 lobby_key_gen = Key_gen() #for making lobby IDs
 
@@ -67,19 +69,21 @@ def on_join(data):
     # Get user data on joining room
     username = data['username']
     lobbyId = data['lobbyId']
+    socketId = request.sid
     
     # Check if the lobby exists
     if lobbyId in lobbies.keys():
         lobby = lobbies[lobbyId]
         # Adding the user to the lobby with username and the spesific socketId and getting the userId
-        userId = lobby.join(username, request.sid)
+        player = lobby.join(username, socketId)
+        players[socketId] = player
         # Joining user in the socketIO room
         join_room(lobbyId)
-        emit('form response', {'ack': True, 'msg': "", 'username': username, 'lobbyId': lobbyId, 'userId': userId})
+        emit('form response', {'ack': True, 'msg': "", 'username': username, 'lobbyId': lobbyId, 'userId': player.userId})
         # Sending the updated lobbyData to the coresponding room
         lobby_data = {
             'users': [player.to_dict() for player in lobby.players],
-            'adminId': min([player.id for player in lobby.players]),
+            'adminId': min([player.userId for player in lobby.players]),
         }
         
         emit('update lobby', lobby_data, room=lobbyId)
@@ -87,7 +91,7 @@ def on_join(data):
         print(f"room: {lobbyId} not found")
         emit('form response', {'ack': False, 'msg': "The lobby does not exist", 'username': None, 'lobbyId': None})
         emit('error', {'data' : f'Room: {lobbyId} does not exist'})
-        
+
 @socketio.on('start game')
 def on_game_start(data):
     lobbyId = data['lobbyId']
@@ -95,14 +99,41 @@ def on_game_start(data):
     
     if lobbyId in lobbies.keys():
         lobby = lobbies[lobbyId]
-        if lobby.get_admin().id == userId:
+        if lobby.get_admin().userId == userId:
             emit('start game', room=lobbyId)
             print(f"starting game {lobbyId}")
         else:
             emit('error', {'data': f"The user {userId} is not admin of {lobbyId}"})
     else:
             emit('error', {'data': f"{lobbyId} does not exist"})
-        
+            
+@socketio.on('disconnect')
+def on_disconnect():
+    socketId = request.sid
+    # If the socketId is not used to create a player, nothing needs to be done
+    if socketId not in players.keys():
+        return
+    
+    # Remove the player from the lobby
+    lobby = players[socketId].lobby
+    lobby.remove(players[socketId])
+    leave_room(lobby.lobbyId)
+    
+    # Remove the player from the players dictionary
+    print(f"{players[socketId].name} with id {socketId} left")
+    del players[socketId]
+    
+    # Delete the lobby if it is empty, if not update all players in the lobby
+    if(len(lobby.players) == 0):
+        print(f"The lobby {lobby.lobbyId} was deleted")
+        del lobbies[lobby.lobbyId]
+        del lobby
+    else:
+        lobby_data = {
+            'users': [player.to_dict() for player in lobby.players],
+            'adminId': min([player.userId for player in lobby.players]),
+        }
+        emit('update lobby', lobby_data, room=lobby.lobbyId)
 
 @socketio.on('leave')
 def on_leave(data):

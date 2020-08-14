@@ -71,6 +71,11 @@ export default class Network {
         });
     }
 
+    static disconnectSocketIO(){
+        if(!this.socket) console.error("Unable to find a connection to disconnect");
+        this.socket.emit("disconnect");
+    }
+
 
     static startGame() {
         // Checks if the current user is admin if the required values exits.

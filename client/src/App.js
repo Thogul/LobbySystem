@@ -27,6 +27,11 @@ export default class App extends React.Component {
 		//this.debugStartup();
 	}
 
+	componentWillUnmount(){
+		// Disconnect socket	
+		Network.disconnectSocketIO();
+	}
+
 	render() {
 		switch (this.state.navigationState) {
 			case 'form':

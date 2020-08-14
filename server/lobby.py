@@ -7,16 +7,18 @@ class Lobby():
         self.players = []
         self.next_player_id = 0
 
-    
-    def join(self, playerName, socket_id):
-        newPlayer = Player(playerName, self.next_player_id, socket_id)
+    def join(self, playerName, socketId):
+        newPlayer = Player(playerName, self.next_player_id, socketId, self)
         self.players.append(newPlayer)
         self.next_player_id = self.next_player_id + 1
-        return newPlayer.id
+        return newPlayer
+    
+    def remove(self, player):
+        self.players.remove(player)
         
     def get_admin(self):
-        adminId = min([player.id for player in self.players])
-        return next(player for player in self.players if player.id == adminId)
+        adminId = min([player.userId for player in self.players])
+        return next(player for player in self.players if player.userId == adminId)
     
     def leave(self, player):
         if player in self.players:
@@ -25,7 +27,3 @@ class Lobby():
     def __str__(self):
         return self.lobbyId
         
-
-
-
-
