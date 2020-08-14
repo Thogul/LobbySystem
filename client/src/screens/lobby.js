@@ -45,6 +45,10 @@ export default class Lobby extends React.Component {
             <div className="container">
                 <div className="header">
                     <h1>Your Lobby Code:<br />{AppState.lobbyId}</h1>
+                    <Button style={{position: 'absolute', left: "70px", top: "70px"}} text="◀ Exit Lobby" onClick={() => {
+                        Network.leaveLobby();
+                        this.props.changeNavigationState('form');
+                    }}/>
                 </div>
                 <div className="flex">
                     {players}

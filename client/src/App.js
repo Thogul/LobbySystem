@@ -28,8 +28,8 @@ export default class App extends React.Component {
 	}
 
 	componentWillUnmount(){
-		// Disconnect socket	
-		Network.disconnectSocketIO();
+		// Cleanup if app is exited
+		Network.leaveLobby();
 	}
 
 	render() {
