@@ -28,8 +28,7 @@ export default class App extends React.Component {
 	}
 
 	componentWillUnmount(){
-		// Cleanup if app is exited
-		Network.leaveLobby();
+		
 	}
 
 	render() {

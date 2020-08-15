@@ -1,7 +1,8 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory
-from flask_cors import CORS #Cross site rescource sharing stuff idk, it works
+from flask_cors import CORS #Cross site rescource sharing stuff idk, it works TODO
 from flask_socketio import SocketIO, emit, join_room, leave_room, send
 import time
+from threading import Timer
 
 #local imports:
 # Should change to lobby class later
@@ -50,17 +51,31 @@ def src_files(filename):
 @app.route("/create", methods = ['POST'])
 def create_lobby():
     lobbyId = lobby_key_gen.new_key()
-    lobbies[lobbyId] = Lobby(lobbyId)
+    lobby = Lobby(lobbyId)
+    lobbies[lobbyId] = lobby
+    #Deletes the lobby if no one joines after 5 seconds
+    delete_unused_lobby_timeout(lobby, 5)
+    print(f"Created lobby {lobbyId}")
     return jsonify({'lobbyId' : lobbyId})
+
+def delete_unused_lobby_timeout(lobby, timeout):
+    """Waits for timeout seconds and deletes the lobby if it is never used"""
+    def delete(lobby):
+        if(lobby != None):
+            if(len(lobby.players) == 0):
+                print(f"The lobby {lobby.lobbyId} was deleted because no one joined")
+                del lobbies[lobby.lobbyId]
+                del lobby 
+    lobby_delete_timer = Timer(timeout, delete, (lobby,))
+    lobby_delete_timer.start()
+    
     
 @socketio.on('message')
 def handle_message(message):
-    """Idk what we are using this for right now, maybe for later"""
     pass
 
 @socketio.on('connect')
 def handle_connect():
-    """If we want to do something when a device connects to the lobbies"""
     pass
 
 #testing room stuff...
@@ -74,6 +89,13 @@ def on_join(data):
     # Check if the lobby exists
     if lobbyId in lobbies.keys():
         lobby = lobbies[lobbyId]
+        
+        # Stops player from joining if lobby is full
+        if lobby.is_full():
+            print("lobby is full")
+            emit('form response', {'ack': False, 'msg': "The lobby is full", 'username': None, 'lobbyId': None})
+            return
+        
         # Adding the user to the lobby with username and the spesific socketId and getting the userId
         player = lobby.join(username, socketId)
         players[socketId] = player
@@ -81,12 +103,8 @@ def on_join(data):
         join_room(lobbyId)
         emit('form response', {'ack': True, 'msg': "", 'username': username, 'lobbyId': lobbyId, 'userId': player.userId})
         # Sending the updated lobbyData to the coresponding room
-        lobby_data = {
-            'users': [player.to_dict() for player in lobby.players],
-            'adminId': min([player.userId for player in lobby.players]),
-        }
-        
-        emit('update lobby', lobby_data, room=lobbyId)
+        update_lobby(lobby)
+        print(f"{username} {socketId} joined {lobbyId}")
     else:
         print(f"room: {lobbyId} not found")
         emit('form response', {'ack': False, 'msg': "The lobby does not exist", 'username': None, 'lobbyId': None})
@@ -107,20 +125,35 @@ def on_game_start(data):
     else:
             emit('error', {'data': f"{lobbyId} does not exist"})
             
+@socketio.on('leave lobby')
+def on_leave_lobby():
+    remove_socket_from_lobby(request.sid)
+        
 @socketio.on('disconnect')
 def on_disconnect():
-    socketId = request.sid
+    remove_socket_from_lobby(request.sid)
+
+def update_lobby(lobby):
+    """Sends all the current lobby data to all members of the lobby"""
+    lobby_data = {
+            'users': [player.to_dict() for player in lobby.players],
+            'adminId': min([player.userId for player in lobby.players]),
+    }
+    emit('update lobby', lobby_data, room=lobby.lobbyId)
+    
+def remove_socket_from_lobby(socketId):
+    """Deletes the player with the socketId from its lobby, the lobby is also deleted if empty"""
     # If the socketId is not used to create a player, nothing needs to be done
     if socketId not in players.keys():
         return
     
     # Remove the player from the lobby
     lobby = players[socketId].lobby
-    lobby.remove(players[socketId])
+    lobby.leave(players[socketId])
     leave_room(lobby.lobbyId)
     
     # Remove the player from the players dictionary
-    print(f"{players[socketId].name} with id {socketId} left")
+    print(f"{players[socketId].name} {socketId} left {lobby.lobbyId}")
     del players[socketId]
     
     # Delete the lobby if it is empty, if not update all players in the lobby
@@ -129,19 +162,7 @@ def on_disconnect():
         del lobbies[lobby.lobbyId]
         del lobby
     else:
-        lobby_data = {
-            'users': [player.to_dict() for player in lobby.players],
-            'adminId': min([player.userId for player in lobby.players]),
-        }
-        emit('update lobby', lobby_data, room=lobby.lobbyId)
-
-@socketio.on('leave')
-def on_leave(data):
-    username = data['username']
-    lobbyId = data['lobbyId']
-    leave_room(lobbyId)
-    send(username + ' has left the room', room=lobbyId)
-
+        update_lobby(lobby)
 
 if __name__ == '__main__':
     #app.run(host='0.0.0.0', debug=True)

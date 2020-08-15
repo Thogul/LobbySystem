@@ -73,7 +73,7 @@ export default class Network {
 
     static leaveLobby(){
         if(!this.socket) console.error("Unable to find a connection to disconnect");
-        this.socket.emit("disconnect");
+        this.socket.emit("leave lobby");
     }
 
     static startGame() {
